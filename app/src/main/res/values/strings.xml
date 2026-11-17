@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">Ghost Cloud Gaming</string>
+    <string name="brand_tag">GHOST-TECH</string>
+    <string name="brand_subtitle">FREE XBOX CLOUD GAMING</string>
+    <string name="free_pass_badge">FREE PASS • $0</string>
+    <string name="free_access_banner">100% Free Cloud Gaming • No Subscription or Payment Required</string>
+
+    <string name="nav_discover">Discover</string>
+    <string name="nav_multiplayer">Cross-Play</string>
+    <string name="nav_cloud_sync">Cloud Sync</string>
+    <string name="nav_profile">Profile</string>
+
+    <string name="auth_headline">XBOX CLOUD GAMES.\nZERO COST.</string>
+    <string name="auth_subhead">Stream Forza Horizon 6, GTA V, Call of Duty: Warzone, Watch Dogs, Blur &amp; Need for Speed with real-time cross-platform multiplayer and cloud save sync.</string>
+    <string name="auth_sign_in_google">Sign in with Google</string>
+    <string name="auth_signing_in">Connecting to Ghost Cloud…</string>
+    <string name="auth_footer_note">Your gamertag, cross-play squads, and cloud saves sync securely via Google Sign-In.</string>
+
+    <string name="action_play_free">PLAY FREE NOW</string>
+    <string name="action_quick_sync">SYNC SAVE</string>
+    <string name="action_create_lobby">HOST SQUAD</string>
+    <string name="action_join_lobby">JOIN SQUAD</string>
+    <string name="action_leave_lobby">LEAVE</string>
+    <string name="action_launch_squad">LAUNCH</string>
+    <string name="action_close_lobby">CLOSE</string>
+    <string name="action_ready_up">READY UP</string>
+    <string name="action_ready_done">READY</string>
+    <string name="action_new_save">NEW CLOUD SAVE</string>
+    <string name="action_save_sync_exit">SYNC &amp; EXIT</string>
+    <string name="action_sign_out">Sign Out</string>
+
+    <string name="cd_game_artwork">Game cover artwork</string>
+    <string name="cd_back">Navigate back</string>
+    <string name="cd_search">Search Xbox games</string>
+    <string name="cd_pin_game">Pin game to library</string>
+    <string name="cd_toggle_controller">Toggle virtual Xbox controller</string>
+    <string name="cd_rotate_screen">Toggle landscape orientation</string>
+    <string name="cd_network_status">Network connection status</string>
+</resources>

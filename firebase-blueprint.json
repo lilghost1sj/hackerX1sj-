@@ -1,0 +1,214 @@
+{
+  "entities": {
+    "GamerProfile": {
+      "title": "GamerProfile",
+      "description": "Authenticated gamer preferences and free cloud pass profile synced across devices.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Owner Firebase Auth UID." },
+        "gamertag": { "type": "string", "description": "Player display handle (2-30 chars)." },
+        "preferredPlatform": {
+          "type": "string",
+          "enum": ["XBOX_CLOUD", "XBOX_SERIES_X", "PC_CROSSPLAY", "ANDROID_TOUCH"]
+        },
+        "preferredQuality": {
+          "type": "string",
+          "enum": ["720P_LOW_LATENCY", "1080P_60FPS", "4K_HDR_60FPS"]
+        },
+        "preferredRegion": {
+          "type": "string",
+          "enum": ["NA_EAST", "EU_WEST", "ASIA_PACIFIC", "SA_EAST"]
+        },
+        "totalPlayMinutes": { "type": "integer", "description": "Total cloud gaming minutes logged." },
+        "cloudPassTier": {
+          "type": "string",
+          "enum": ["FREE_UNLIMITED"],
+          "description": "Always FREE_UNLIMITED for free access without paying."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "gamertag",
+        "preferredPlatform",
+        "preferredQuality",
+        "preferredRegion",
+        "totalPlayMinutes",
+        "cloudPassTier",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CloudSave": {
+      "title": "CloudSave",
+      "description": "Cross-device cloud save slot for games such as Need for Speed, Forza Horizon 6, GTA V, Watch Dogs, Blur, and Call of Duty Warzone.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Owner Firebase Auth UID." },
+        "gameId": { "type": "string", "description": "Catalog game slug." },
+        "gameTitle": { "type": "string", "description": "Display name of the game." },
+        "slotName": { "type": "string", "description": "User-defined cloud save slot label." },
+        "chapterOrRank": { "type": "string", "description": "Current chapter, garage rank, or tier summary." },
+        "progressPercent": { "type": "integer", "description": "Completion percentage (0-100)." },
+        "playTimeMinutes": { "type": "integer", "description": "Minutes played on this save slot." },
+        "platformOrigin": {
+          "type": "string",
+          "enum": ["XBOX_CLOUD", "XBOX_SERIES_X", "PC_CROSSPLAY", "ANDROID_TOUCH"]
+        },
+        "syncStatus": {
+          "type": "string",
+          "enum": ["SYNCED", "PENDING"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "gameId",
+        "gameTitle",
+        "slotName",
+        "chapterOrRank",
+        "progressPercent",
+        "playTimeMinutes",
+        "platformOrigin",
+        "syncStatus",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "LibraryEntry": {
+      "title": "LibraryEntry",
+      "description": "Pinned Xbox cloud game record and cumulative playtime in the player's personal library.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Owner Firebase Auth UID." },
+        "gameId": { "type": "string", "description": "Catalog game slug matching document ID." },
+        "gameTitle": { "type": "string", "description": "Display title of the game." },
+        "pinned": { "type": "boolean", "description": "Whether the game is pinned to the player's Quick Play deck." },
+        "playTimeMinutes": { "type": "integer", "description": "Total minutes played for this title." },
+        "lastSessionQuality": {
+          "type": "string",
+          "enum": ["720P_LOW_LATENCY", "1080P_60FPS", "4K_HDR_60FPS"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "gameId",
+        "gameTitle",
+        "pinned",
+        "playTimeMinutes",
+        "lastSessionQuality",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MultiplayerLobby": {
+      "title": "MultiplayerLobby",
+      "description": "Real-time cross-platform multiplayer squad lobby for Xbox, PC, PlayStation, and Android Cloud players.",
+      "type": "object",
+      "properties": {
+        "hostUid": { "type": "string", "description": "Host Firebase Auth UID." },
+        "hostGamertag": { "type": "string", "description": "Host player handle." },
+        "gameId": { "type": "string", "description": "Catalog game slug." },
+        "gameTitle": { "type": "string", "description": "Display title of the game." },
+        "title": { "type": "string", "description": "Lobby title (3-60 chars)." },
+        "region": {
+          "type": "string",
+          "enum": ["NA_EAST", "EU_WEST", "ASIA_PACIFIC", "SA_EAST", "GLOBAL"]
+        },
+        "crossPlayPlatforms": {
+          "type": "array",
+          "description": "Bounded list (1-4) of enabled cross-platform networks."
+        },
+        "visibility": {
+          "type": "string",
+          "enum": ["PUBLIC", "PRIVATE"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["OPEN", "IN_SESSION", "CLOSED"]
+        },
+        "maxPlayers": { "type": "integer", "description": "Maximum squad size (2-16)." },
+        "memberUids": {
+          "type": "array",
+          "description": "Bounded list (1-16) of participating user UIDs."
+        },
+        "readyUids": {
+          "type": "array",
+          "description": "Bounded list (0-16) of UIDs marked ready."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "hostUid",
+        "hostGamertag",
+        "gameId",
+        "gameTitle",
+        "title",
+        "region",
+        "crossPlayPlatforms",
+        "visibility",
+        "status",
+        "maxPlayers",
+        "memberUids",
+        "readyUids",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/GamerProfile" },
+      "description": "Owner-scoped gamer profile and cloud streaming preferences."
+    },
+    "/users/{userId}/cloud_saves/{saveId}": {
+      "schema": { "$ref": "#/entities/CloudSave" },
+      "description": "Owner-scoped cloud save slots synchronized across devices."
+    },
+    "/users/{userId}/library/{gameId}": {
+      "schema": { "$ref": "#/entities/LibraryEntry" },
+      "description": "Owner-scoped pinned games and session playtime history."
+    },
+    "/lobbies/{lobbyId}": {
+      "schema": { "$ref": "#/entities/MultiplayerLobby" },
+      "description": "Cross-platform multiplayer lobbies readable when PUBLIC or joined by the signed-in user."
+    }
+  }
+}

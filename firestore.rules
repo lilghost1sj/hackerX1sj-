@@ -1,0 +1,370 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reusable hardened primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidPlatform(p) {
+      return p in ['XBOX_CLOUD', 'XBOX_SERIES_X', 'PC_CROSSPLAY', 'ANDROID_TOUCH'];
+    }
+
+    function isValidQuality(q) {
+      return q in ['720P_LOW_LATENCY', '1080P_60FPS', '4K_HDR_60FPS'];
+    }
+
+    function isValidRegion(r) {
+      return r in ['NA_EAST', 'EU_WEST', 'ASIA_PACIFIC', 'SA_EAST'];
+    }
+
+    function isValidLobbyRegion(r) {
+      return r in ['NA_EAST', 'EU_WEST', 'ASIA_PACIFIC', 'SA_EAST', 'GLOBAL'];
+    }
+
+    // Validation Helper: GamerProfile
+    function isValidGamerProfile(data, expectedUid) {
+      return data.userId is string &&
+             data.userId == expectedUid &&
+             data.userId == request.auth.uid &&
+             data.gamertag is string &&
+             data.gamertag.size() >= 2 &&
+             data.gamertag.size() <= 30 &&
+             data.preferredPlatform is string &&
+             isValidPlatform(data.preferredPlatform) &&
+             data.preferredQuality is string &&
+             isValidQuality(data.preferredQuality) &&
+             data.preferredRegion is string &&
+             isValidRegion(data.preferredRegion) &&
+             data.totalPlayMinutes is int &&
+             data.totalPlayMinutes >= 0 &&
+             data.totalPlayMinutes <= 1000000 &&
+             data.cloudPassTier is string &&
+             data.cloudPassTier == 'FREE_UNLIMITED' &&
+             data.createdAt is timestamp &&
+             data.createdAt <= request.time &&
+             data.updatedAt is timestamp &&
+             data.updatedAt <= request.time;
+    }
+
+    // Validation Helper: CloudSave
+    function isValidCloudSave(data, expectedUid) {
+      return data.userId is string &&
+             data.userId == expectedUid &&
+             data.userId == request.auth.uid &&
+             data.gameId is string &&
+             data.gameId.size() >= 1 &&
+             data.gameId.size() <= 64 &&
+             data.gameId.matches('^[a-z0-9_\\-]+$') &&
+             data.gameTitle is string &&
+             data.gameTitle.size() >= 1 &&
+             data.gameTitle.size() <= 80 &&
+             data.slotName is string &&
+             data.slotName.size() >= 1 &&
+             data.slotName.size() <= 60 &&
+             data.chapterOrRank is string &&
+             data.chapterOrRank.size() >= 1 &&
+             data.chapterOrRank.size() <= 100 &&
+             data.progressPercent is int &&
+             data.progressPercent >= 0 &&
+             data.progressPercent <= 100 &&
+             data.playTimeMinutes is int &&
+             data.playTimeMinutes >= 0 &&
+             data.playTimeMinutes <= 1000000 &&
+             data.platformOrigin is string &&
+             isValidPlatform(data.platformOrigin) &&
+             data.syncStatus is string &&
+             data.syncStatus in ['SYNCED', 'PENDING'] &&
+             data.createdAt is timestamp &&
+             data.createdAt <= request.time &&
+             data.updatedAt is timestamp &&
+             data.updatedAt <= request.time;
+    }
+
+    // Validation Helper: LibraryEntry
+    function isValidLibraryEntry(data, expectedUid, expectedGameId) {
+      return data.userId is string &&
+             data.userId == expectedUid &&
+             data.userId == request.auth.uid &&
+             data.gameId is string &&
+             data.gameId == expectedGameId &&
+             data.gameId.size() >= 1 &&
+             data.gameId.size() <= 64 &&
+             data.gameId.matches('^[a-z0-9_\\-]+$') &&
+             data.gameTitle is string &&
+             data.gameTitle.size() >= 1 &&
+             data.gameTitle.size() <= 80 &&
+             data.pinned is bool &&
+             data.playTimeMinutes is int &&
+             data.playTimeMinutes >= 0 &&
+             data.playTimeMinutes <= 1000000 &&
+             data.lastSessionQuality is string &&
+             isValidQuality(data.lastSessionQuality) &&
+             data.createdAt is timestamp &&
+             data.createdAt <= request.time &&
+             data.updatedAt is timestamp &&
+             data.updatedAt <= request.time;
+    }
+
+    // Validation Helper: MultiplayerLobby
+    function isValidLobby(data) {
+      return data.hostUid is string &&
+             isValidId(data.hostUid) &&
+             data.hostGamertag is string &&
+             data.hostGamertag.size() >= 2 &&
+             data.hostGamertag.size() <= 30 &&
+             data.gameId is string &&
+             data.gameId.size() >= 1 &&
+             data.gameId.size() <= 64 &&
+             data.gameId.matches('^[a-z0-9_\\-]+$') &&
+             data.gameTitle is string &&
+             data.gameTitle.size() >= 1 &&
+             data.gameTitle.size() <= 80 &&
+             data.title is string &&
+             data.title.size() >= 3 &&
+             data.title.size() <= 60 &&
+             data.region is string &&
+             isValidLobbyRegion(data.region) &&
+             data.crossPlayPlatforms is list &&
+             data.crossPlayPlatforms.size() >= 1 &&
+             data.crossPlayPlatforms.size() <= 4 &&
+             data.crossPlayPlatforms[0] is string &&
+             data.visibility is string &&
+             data.visibility in ['PUBLIC', 'PRIVATE'] &&
+             data.status is string &&
+             data.status in ['OPEN', 'IN_SESSION', 'CLOSED'] &&
+             data.maxPlayers is int &&
+             data.maxPlayers >= 2 &&
+             data.maxPlayers <= 16 &&
+             data.memberUids is list &&
+             data.memberUids.size() >= 1 &&
+             data.memberUids.size() <= data.maxPlayers &&
+             data.memberUids[0] is string &&
+             data.hostUid in data.memberUids &&
+             data.readyUids is list &&
+             data.readyUids.size() <= data.maxPlayers &&
+             (data.readyUids.size() == 0 || data.readyUids[0] is string) &&
+             data.createdAt is timestamp &&
+             data.createdAt <= request.time &&
+             data.updatedAt is timestamp &&
+             data.updatedAt <= request.time;
+    }
+
+    // Action predicates for MultiplayerLobby updates
+    function isHostManageLobby() {
+      return existing().hostUid == request.auth.uid &&
+             incoming().diff(existing()).affectedKeys().hasOnly([
+               'title', 'region', 'visibility', 'status', 'updatedAt'
+             ]);
+    }
+
+    function isJoinLobbyAction() {
+      return existing().status == 'OPEN' &&
+             existing().visibility == 'PUBLIC' &&
+             !(request.auth.uid in existing().memberUids) &&
+             existing().memberUids.size() < existing().maxPlayers &&
+             request.auth.uid in incoming().memberUids &&
+             incoming().memberUids.hasAll(existing().memberUids) &&
+             incoming().memberUids.size() == existing().memberUids.size() + 1 &&
+             incoming().diff(existing()).affectedKeys().hasOnly(['memberUids', 'updatedAt']);
+    }
+
+    function isLeaveLobbyAction() {
+      return request.auth.uid != existing().hostUid &&
+             request.auth.uid in existing().memberUids &&
+             !(request.auth.uid in incoming().memberUids) &&
+             existing().memberUids.hasAll(incoming().memberUids) &&
+             incoming().memberUids.size() == existing().memberUids.size() - 1 &&
+             !(request.auth.uid in incoming().readyUids) &&
+             existing().readyUids.hasAll(incoming().readyUids) &&
+             incoming().diff(existing()).affectedKeys().hasOnly(['memberUids', 'readyUids', 'updatedAt']);
+    }
+
+    function isToggleReadyAction() {
+      return request.auth.uid in existing().memberUids &&
+             incoming().diff(existing()).affectedKeys().hasOnly(['readyUids', 'updatedAt']) &&
+             (
+               (!(request.auth.uid in existing().readyUids) &&
+                request.auth.uid in incoming().readyUids &&
+                incoming().readyUids.hasAll(existing().readyUids) &&
+                incoming().readyUids.size() == existing().readyUids.size() + 1) ||
+               (request.auth.uid in existing().readyUids &&
+                !(request.auth.uid in incoming().readyUids) &&
+                existing().readyUids.hasAll(incoming().readyUids) &&
+                incoming().readyUids.size() == existing().readyUids.size() - 1)
+             );
+    }
+
+    // 1. User GamerProfile & Subcollections
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if false;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'gamertag', 'preferredPlatform', 'preferredQuality',
+                         'preferredRegion', 'totalPlayMinutes', 'cloudPassTier',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'gamertag', 'preferredPlatform', 'preferredQuality',
+                         'preferredRegion', 'totalPlayMinutes', 'cloudPassTier',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidGamerProfile(incoming(), userId);
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       isValidGamerProfile(incoming(), userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().cloudPassTier == existing().cloudPassTier &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'gamertag', 'preferredPlatform', 'preferredQuality',
+                         'preferredRegion', 'totalPlayMinutes', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      // 2. Cloud Save Sync Slots (User-Scoped Subcollection)
+      match /cloud_saves/{saveId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(saveId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(saveId) &&
+                         request.auth.uid == userId &&
+                         incoming().keys().hasAll([
+                           'userId', 'gameId', 'gameTitle', 'slotName', 'chapterOrRank',
+                           'progressPercent', 'playTimeMinutes', 'platformOrigin',
+                           'syncStatus', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'gameId', 'gameTitle', 'slotName', 'chapterOrRank',
+                           'progressPercent', 'playTimeMinutes', 'platformOrigin',
+                           'syncStatus', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidCloudSave(incoming(), userId);
+
+        allow update: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(saveId) &&
+                         request.auth.uid == userId &&
+                         isValidCloudSave(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().gameId == existing().gameId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'slotName', 'chapterOrRank', 'progressPercent',
+                           'playTimeMinutes', 'platformOrigin', 'syncStatus', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(saveId) && request.auth.uid == userId;
+      }
+
+      // 3. Personal Game Library (User-Scoped Subcollection)
+      match /library/{gameId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(gameId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(gameId) &&
+                         request.auth.uid == userId &&
+                         incoming().keys().hasAll([
+                           'userId', 'gameId', 'gameTitle', 'pinned',
+                           'playTimeMinutes', 'lastSessionQuality', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'gameId', 'gameTitle', 'pinned',
+                           'playTimeMinutes', 'lastSessionQuality', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidLibraryEntry(incoming(), userId, gameId);
+
+        allow update: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(gameId) &&
+                         request.auth.uid == userId &&
+                         isValidLibraryEntry(incoming(), userId, gameId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().gameId == existing().gameId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'gameTitle', 'pinned', 'playTimeMinutes',
+                           'lastSessionQuality', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(gameId) && request.auth.uid == userId;
+      }
+    }
+
+    // 4. Cross-Platform Multiplayer Lobbies
+    match /lobbies/{lobbyId} {
+      allow get: if isSignedIn() &&
+                    isValidId(lobbyId) &&
+                    (existing().visibility == 'PUBLIC' || request.auth.uid in existing().memberUids);
+
+      allow list: if isSignedIn() &&
+                     (resource.data.visibility == 'PUBLIC' || request.auth.uid in resource.data.memberUids);
+
+      allow create: if isSignedIn() &&
+                       isValidId(lobbyId) &&
+                       incoming().keys().hasAll([
+                         'hostUid', 'hostGamertag', 'gameId', 'gameTitle', 'title',
+                         'region', 'crossPlayPlatforms', 'visibility', 'status',
+                         'maxPlayers', 'memberUids', 'readyUids', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'hostUid', 'hostGamertag', 'gameId', 'gameTitle', 'title',
+                         'region', 'crossPlayPlatforms', 'visibility', 'status',
+                         'maxPlayers', 'memberUids', 'readyUids', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidLobby(incoming()) &&
+                       incoming().hostUid == request.auth.uid &&
+                       incoming().status == 'OPEN' &&
+                       incoming().memberUids.size() == 1 &&
+                       incoming().memberUids[0] == request.auth.uid &&
+                       incoming().readyUids.size() == 0;
+
+      allow update: if isSignedIn() &&
+                       isValidId(lobbyId) &&
+                       isValidLobby(incoming()) &&
+                       existing().status != 'CLOSED' &&
+                       incoming().hostUid == existing().hostUid &&
+                       incoming().gameId == existing().gameId &&
+                       incoming().createdAt == existing().createdAt &&
+                       (
+                         isHostManageLobby() ||
+                         isJoinLobbyAction() ||
+                         isLeaveLobbyAction() ||
+                         isToggleReadyAction()
+                       );
+
+      allow delete: if isSignedIn() &&
+                       isValidId(lobbyId) &&
+                       existing().hostUid == request.auth.uid;
+    }
+  }
+}

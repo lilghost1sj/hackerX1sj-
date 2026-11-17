@@ -1,0 +1,6 @@
+{
+  "name": "Ghost Cloud Gaming",
+  "description": "Free-to-play Xbox cloud gaming hub with cross-platform multiplayer lobbies, cloud save sync, virtual controller overlay, and a curated catalog including Watch Dogs, Blur, Call of Duty Warzone, GTA V, Need for Speed, and Forza Horizon 6.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
